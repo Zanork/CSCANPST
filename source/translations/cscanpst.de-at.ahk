@@ -53,7 +53,7 @@ param3 = %3%
 	
 if param3=N
 {
-	FileAppend, (INFO: Es wird keine backup PST datei erstellt)...`n  , cscanpst.log
+	FileAppend, (INFO: Es wird keine backup PST datei erstellt)...  , cscanpst.log
 }
 
 
@@ -63,7 +63,11 @@ SetTitleMatchMode 2
 
 IfWinExist Tool zum Reparieren des Posteingangs
 {
+	Send !S
+	WinWaitClose
+
 	FileAppend, ERROR: Reparier Tool bereits gestartet`n , cscanpst.log
+
 	ExitApp 3
 
 }
@@ -120,7 +124,7 @@ Loop
 		WinActivate
 		WinWaitActive
 		Send {ENTER}
-		Send !N
+		Send !S
 			
 		FileAppend, ERROR: Datei bereits in benutzung`n , cscanpst.log
 		exitapp 6
@@ -192,6 +196,7 @@ Loop
 		WinActivate
 		WinWaitActive
 		Send {ENTER}
+		send {ENTER}
 		WinWaitClose
 
 		FileAppend, Kein Fehler gefunden`n , cscanpst.log
@@ -202,6 +207,36 @@ Loop
 
 	ifWinExist, Tool zum Reparieren des Posteingangs, Um diese zu beheben
 	{
+		WinActivate
+		WinWaitActive
+		if param3=N
+		   Send {SPACE}
+
+		Send !R
+		Loop 
+		{
+			ifWinExist, Tool zum Reparieren des Posteingangs, wird die Datei überschrieben.
+			{
+				WinActivate
+				WinWaitActive
+				Send !J
+				WinWaitClose
+			}
+
+			ifWinExist, Tool zum Reparieren des Posteingangs, Die Reparatur ist abgeschlossen 	
+			{
+				WinActivate
+				WinWaitActive
+				Send {ENTER}
+				WinWaitClose
+				FileAppend, Fehler Repariert`n , cscanpst.log
+				exitapp 2
+			}	
+		}
+	}	
+
+	ifWinExist, Tool zum Reparieren des Posteingangs, die nicht unbedingt behoben
+	{
 
 		WinActivate
 		WinWaitActive
@@ -209,69 +244,34 @@ Loop
 		if param3=N
 		   Send {SPACE}
 
-
+		Send {ENTER}
 		Send !R
-		Loop 
 
+		loop 
 		{
+			Process, Exist, Scanpst.exe
+			ifWinExist, Tool zum Reparieren des Posteingangs, wird die Datei überschrieben.
+				{
+					WinActivate
+					WinWaitActive
+					Send !J
+					WinWaitClose
+				}
 
+				ifWinExist, Tool zum Reparieren des Posteingangs, Die Reparatur ist abgeschlossen 	
+				{
+					WinActivate
+					WinWaitActive
+					Send {ENTER}
+					WinWaitClose
+					FileAppend, Unbedeutende Fehler Repariert`n , cscanpst.log
+					exitapp 2
+				}	
+		}
+		Until ErrorLevel = 0
 
-			ifWinExist, Tool zum Reparieren des Posteingangs, Die Sicherungskopie
-			{
-
-				WinActivate
-				WinWaitActive
-
-
-				
-				Send !J
-
-
-				WinWaitClose
-
-			}
-		
-		
-			ifWinExist, Tool zum Reparieren des Posteingangs, Die Reparatur ist abgeschlossen 
-
-			{
-				WinActivate
-				WinWaitActive
-				Send {ENTER}
-				WinWaitClose
-				FileAppend, Datei Repariert`n , cscanpst.log
-				exitapp 2
-
-			}
-		
-
-
-
-		}			
-
-
-
-		
-
-	}	
-
-
-	ifWinExist, Tool zum Reparieren des Posteingangs, die nicht unbedingt behoben
-
-	{
-
-			
-		WinActivate
-		WinWaitActive
-		Send {ENTER}
-		Send {ENTER}
-		WinWaitClose
-	
-
-		FileAppend, Unbedeutende Inkonsistenzen nicht Repariert`n , cscanpst.log
+		FileAppend, Unbedeutende Fehler nicht Repariert`n , cscanpst.log
 		exitapp 1
-	 	
-		
 
 	}	
 
